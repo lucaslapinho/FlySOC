@@ -1,0 +1,40 @@
+{
+  "encoding": {
+    "validation": {
+      "pn_seconds": 0.08784749999176711,
+      "fly_incremental_seconds": 0.3823299999930896,
+      "pn_ms_per_alert": 0.1171299999890228,
+      "fly_end_to_end_ms_per_alert": 0.6269033333131423,
+      "active_kcs_min": 64,
+      "active_kcs_max": 64
+    },
+    "test": {
+      "pn_seconds": 0.060285899991868064,
+      "fly_incremental_seconds": 0.34678739999071695,
+      "pn_ms_per_alert": 0.08038119998915742,
+      "fly_end_to_end_ms_per_alert": 0.54276439997678,
+      "active_kcs_min": 64,
+      "active_kcs_max": 64
+    }
+  },
+  "retrieval": {
+    "fly": {
+      "batch_seconds": 0.45424710000224877,
+      "batch_ms_per_alert": 0.6056628000029983,
+      "individual_queries": {
+        "warm_queries": 30,
+        "median_ms": 6.9927500080666505,
+        "p95_ms": 11.408840002695797
+      }
+    },
+    "pn": {
+      "batch_seconds": 0.3869839000108186,
+      "batch_ms_per_alert": 0.5159785333477581,
+      "individual_queries": {
+        "warm_queries": 30,
+        "median_ms": 2.2297000032267533,
+        "p95_ms": 5.936954991193488
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use FlySOC in research, cite this repository and the commit used. Cite FlyWire separately when using its data."
+type: software
+title: "FlySOC: A Drosophila-Inspired Neural Architecture for Security Operations"
+authors:
+  - name: "lucaslapinho"
+    affiliation: "Independent research project"
+version: 0.2.0
+license: MIT
+repository-code: "https://github.com/lucaslapinho/FlySOC"
+url: "https://github.com/lucaslapinho/FlySOC"
+abstract: >-
+  A local research platform comparing Mushroom Body-inspired sparse alert
+  representations with conventional feature-space baselines, with a separate
+  real-connectome exploration and abstract graph-diffusion viewer.
+keywords:
+  - cybersecurity
+  - sparse representations
+  - connectomics
+  - reproducible research

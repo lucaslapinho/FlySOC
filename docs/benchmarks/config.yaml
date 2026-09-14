@@ -1,0 +1,36 @@
+seed: 42
+dataset:
+  size: 5000
+  start: '2026-01-01T00:00:00Z'
+  heldout_family: credential_dumping
+  unseen_test_fraction: 0.30
+features:
+  input_features: 4096
+  categorical_hash_dim: 2048
+  text_max_features: 2040
+  categorical_weight: 0.7
+  identity_weight: 0.15
+  text_weight: 1.0
+  numeric_weight: 0.2
+  text_fields: [alert_name, process_command_line]
+  categorical_fields: [severity, category, process_name, action]
+  identity_fields: [hostname, username, source_ip, destination_ip]
+flyhash:
+  kc_dim: 8192
+  fan_in: 8
+  top_k: 64
+  batch_size: 128
+novelty:
+  percentile: 99
+evaluation:
+  train_ratio: 0.70
+  validation_ratio: 0.15
+  test_ratio: 0.15
+  retrieval_k: [1, 5, 10]
+  query_batch_size: 128
+classification:
+  knn_neighbors: 5
+  forest_trees: 100
+  logistic_max_iter: 1000
+deduplication:
+  similarity_threshold: 0.75

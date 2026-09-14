@@ -1,0 +1,29 @@
+{
+  "fly_pipeline_fit_seconds": 4.361669599995366,
+  "classifier_fit_seconds": {
+    "pn_logistic_regression": 0.23984579999523703,
+    "pn_random_forest": 1.916021400000318,
+    "pn_knn": 0.003908500002580695,
+    "fly_logistic_regression": 0.9710226000024704,
+    "fly_random_forest": 16.761942400000407,
+    "fly_knn": 0.00400179999996908
+  },
+  "pn_novelty_fit_seconds": 1.921479200012982,
+  "isolation_forest_fit_seconds": 0.3361406999902101,
+  "pn_shape": [
+    3500,
+    4096
+  ],
+  "fingerprint_shape": [
+    3500,
+    8192
+  ],
+  "pn_storage_bytes": 983300,
+  "fingerprint_storage_bytes": 1134004,
+  "projection_storage_bytes": 540676,
+  "model_file_bytes": 5846184,
+  "active_kcs_min": 64,
+  "active_kcs_max": 64,
+  "fly_novelty_threshold": 0.11764705181121826,
+  "pn_novelty_threshold": 0.04105862230062485
+}

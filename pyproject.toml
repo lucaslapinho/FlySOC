@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flysoc"
+version = "0.2.0"
+description = "Mushroom Body-inspired sparse representations for local SOC research"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dynamic = ["dependencies"]
+
+[project.urls]
+Repository = "https://github.com/lucaslapinho/FlySOC"
+Documentation = "https://github.com/lucaslapinho/FlySOC#readme"
+Issues = "https://github.com/lucaslapinho/FlySOC/issues"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+flysoc = ["web/*.html", "web/*.css", "web/*.js", "web/vendor/*"]
+
+[project.scripts]
+flysoc = "flysoc.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlySOC · Brain Lab</title><link rel="stylesheet" href="/style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">◈</span><strong>FlySOC</strong><span class="divider"></span><span>Brain Lab</span><small>v0.2</small></div>
+    <div class="connection"><span class="dot"></span><span id="connection">Connecting to local engine</span><span class="local-tag">127.0.0.1</span></div>
+  </header>
+  <main>
+    <div class="page-heading"><div><p class="eyebrow">NEUROCOMPUTING LABORATORY</p><h1>Observe the network. Explore the signal.</h1><p class="subheading">Fly connectome and alert processing in one local research lab.</p></div><a href="https://home.flywire.ai/" target="_blank" rel="noreferrer">About FlyWire ↗</a></div>
+    <div class="modebar"><div class="tabs" role="tablist" aria-label="Visualization mode"><button role="tab" aria-selected="true" id="mode-real">Real connectome <span>FAFB v783</span></button><button role="tab" aria-selected="false" id="mode-fly">Live FlySOC <span>PN → KC</span></button></div><span id="mode-note">Real anatomical positions · exploratory propagation</span></div>
+    <section class="stats" aria-label="Network statistics">
+      <div><span id="stat-label-1">NEURONS</span><strong id="stat-1">—</strong><small id="stat-detail-1">FlyWire FAFB</small></div>
+      <div><span id="stat-label-2">CONNECTED NEURON PAIRS</span><strong id="stat-2">—</strong><small id="stat-detail-2">Complete graph from the dataset</small></div>
+      <div><span id="stat-label-3">ACTIVE SIGNAL</span><strong id="stat-3">0</strong><small id="stat-detail-3">Awaiting stimulation</small></div>
+      <div><span id="stat-label-4">COMPUTE / STEP</span><strong id="stat-4">—</strong><small id="stat-detail-4">Computed in Python</small></div>
+    </section>
+    <div class="workspace">
+      <aside class="controls panel">
+        <div class="panel-title">EXPERIMENT CONTROLS <span>01</span></div>
+        <section id="real-controls"><label for="stimulus">Input population</label><select id="stimulus"><option value="ALPN">ALPN · olfactory projection</option></select><p class="helper">An initial pulse travels through real connections, weighted by synapse count.</p><button id="pulse" class="primary full">↗ Apply pulse</button></section>
+        <section id="fly-controls" hidden><label for="alert-filter">Alert set</label><select id="alert-filter"><option value="all">All test alerts</option><option value="unseen">Unseen family</option><option value="FALSE_POSITIVE">False positives (label)</option><option value="TRUE_POSITIVE">True positives</option><option value="BENIGN">Benign</option></select><label for="alert-select">Alert to process</label><select id="alert-select"></select><p class="helper">Each query computes PN features, KC activations, Top-K and memory matches using the trained model.</p></section>
+        <div class="transport"><button id="play" class="primary">▶ Start</button><button id="step" title="Run one step">Next step</button></div>
+        <div class="control-row"><label for="speed">Playback speed</label><output id="speed-label">2×</output></div><input type="range" id="speed" min="1" max="8" value="2" aria-label="Playback speed"><p class="helper">Playback speed does not represent biological time.</p>
+        <div class="control-divider"></div><div class="panel-title">VISUALIZATION <span>02</span></div>
+        <label class="check"><input type="checkbox" id="show-links" checked> Show connections</label><label class="check"><input type="checkbox" id="auto-rotate"> Auto-rotate</label><label class="check"><input type="checkbox" id="only-active"> Show active signal only</label>
+        <div class="control-row"><label for="point-size">Point size</label><output id="point-size-label">1.5</output></div><input type="range" id="point-size" min="0.5" max="3" step="0.1" value="1.5" aria-label="Point size">
+        <button class="quiet full" id="reset-view">↺ Reset camera</button>
+        <details id="manual-section" hidden><summary>Test a JSON alert</summary><label for="manual-alert">Alert fields</label><textarea id="manual-alert" spellcheck="false">{"alert_name":"PowerShell activity","process_name":"powershell.exe","process_command_line":"inventory.ps1","category":"execution","severity":"medium"}</textarea><button id="manual-process" class="quiet full">Process JSON</button></details>
+        <div class="local-info"><span class="dot"></span><div>Local execution<small>Data and computation stay on this machine.</small></div></div>
+      </aside>
+      <section class="viewer panel" aria-label="Interactive 3D viewer">
+        <div class="viewer-head"><span><i class="dot"></i><b id="viewer-title">Drosophila connectome</b></span><span><span id="frame-label">PAUSED · STEP 0</span><button id="expand-view" aria-label="Expand viewer" title="Expand viewer">⛶</button></span></div>
+        <div id="stage"><div id="loading"><span class="loader"></span><strong>Building the 3D visualization</strong><small>Loading local points and connections…</small></div><div class="view-overlay"><span id="scene-tag">ANATOMY · ANNOTATED POINTS</span><small id="geometry-caption">Lines show connections, not axon trajectories.</small></div><div id="scene-labels" hidden><span class="kc-label">KENYON CELLS</span><span class="pn-label">PROJECTION NEURONS</span></div><div class="axis-key"><span class="axis-x">X</span><span class="axis-y">Y</span><span class="axis-z">Z</span></div><div class="mouse-hint">Drag to rotate · scroll to zoom · click a point</div></div>
+        <div class="viewer-footer"><div id="legend"></div><span id="fps">— FPS</span></div>
+        <div class="trace-strip" id="trace-strip"><span class="trace-node selected">PULSE</span><i></i><span class="trace-node">REAL GRAPH</span><i></i><span class="trace-node">DIFFUSION</span><i></i><span class="trace-node">READOUT</span></div>
+      </section>
+      <aside class="inspector panel"><div class="panel-title">PROCESSING RESULTS <span>03</span></div>
+        <div class="inspector-heading"><span id="result-badge" class="badge">Ready to explore</span><h2 id="result-title">A map of real connections.</h2><p id="result-description">Apply a pulse to follow the computed propagation through the graph.</p></div>
+        <div id="selected-node" class="selected-node" hidden></div>
+        <div class="mini-metrics"><div><span id="metric-a-label">STEP</span><strong id="metric-a">0</strong></div><div><span id="metric-b-label">SIGNAL MASS</span><strong id="metric-b">0</strong></div></div>
+        <div class="chart-title"><span id="chart-title">Activity across steps</span><small id="chart-scale">0 → peak</small></div><canvas id="activity-chart" width="520" height="160" aria-label="Activity chart"></canvas>
+        <div class="panel-title list-heading" id="list-heading">NEURONS WITH THE STRONGEST SIGNAL</div><div id="results-list" class="results-list"><p class="empty">Results appear after the first computation.</p></div>
+        <div class="science-note"><span>SCIENTIFIC SCOPE</span><p id="science-note">Connections and positions come from FlyWire. The pulse is mathematical diffusion without inhibitory signals, voltages or spikes. It is not a validated physiological simulation.</p></div>
+      </aside>
+    </div>
+    <footer class="page-footer"><span id="data-caption">FlyWire FAFB v783 · source and checksums preserved locally</span><span>FlySOC Research Lab · <span id="processed-count">0</span> computations this session</span></footer>
+    <div id="error" role="alert" hidden></div>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
