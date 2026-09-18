@@ -16,6 +16,15 @@ from flysoc.ingestion import chronological_split
 from flysoc.pipeline import FlySOCPipeline
 
 
+class FixedClassifier:
+    """Small deterministic classifier double for the live trace contract."""
+
+    classes_ = np.array(["BENIGN", "TRUE_POSITIVE"])
+
+    def predict_proba(self, fingerprints):
+        return np.tile([0.25, 0.75], (fingerprints.shape[0], 1))
+
+
 def test_position_parsing_never_evaluates_data():
     np.testing.assert_array_equal(parse_positions(pd.Series(['[1 2 3]', '[4 5 6]'])), [[1,2,3],[4,5,6]])
     with pytest.raises(ValueError):
@@ -55,7 +64,7 @@ def test_live_trace_equals_saved_algorithm(config, alerts):
     lab = BrainLab.__new__(BrainLab)
     lab.pipeline = pipeline
     lab.test = splits['test']
-    lab.payload = {'classifiers': {}}
+    lab.payload = {'classifiers': {'fly_logistic_regression': FixedClassifier()}}
     trace = lab.trace_alert(0)
     pn = pipeline.preprocessor.transform(lab.test.iloc[[0]])
     expected_fp = pipeline.encode(lab.test.iloc[[0]])
@@ -66,6 +75,18 @@ def test_live_trace_equals_saved_algorithm(config, alerts):
     assert set(edges[:,0]).issubset(set(pn.indices))
     assert set(edges[:,1]).issubset(set(expected_fp.indices))
     assert trace['active_kcs'] == 16
+    assert trace['prediction'] == {
+        'model': 'Logistic Regression on FlyFingerprint',
+        'role': 'downstream_classifier',
+        'hypothesis': 'TRUE_POSITIVE',
+        'verdict': 'TRUE_POSITIVE',
+        'confidence': 0.75,
+        'probabilities': {'BENIGN': 0.25, 'TRUE_POSITIVE': 0.75},
+    }
+    imported = lab.trace_alert(alert={'alert_id': 'IMPORTED-007', 'alert_name': 'Imported alert'})
+    assert imported['alert']['alert_id'] == 'IMPORTED-007'
+    manual = lab.trace_alert(alert={'alert_name': 'Manual alert'})
+    assert manual['alert']['alert_id'] == 'MANUAL'
     with pytest.raises(ValueError):
         lab.trace_alert(-1)
     with pytest.raises(ValueError, match='flat JSON'):
@@ -84,7 +105,7 @@ def test_loopback_server_origin_and_body_checks():
         nodes = pd.DataFrame([{'root_id': '720575940629663000', 'class': 'ALPN',
                                'super_class': 'central', 'nt_type': 'ACH'}])
         def status(self): return {'mode':'local'}
-        def trace_alert(self, index, alert): return {'index': index}
+        def trace_alert(self, index, alert): return {'index': index, 'alert': alert}
     server = ThreadingHTTPServer(('127.0.0.1',0), make_handler(FakeLab()))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -92,6 +113,14 @@ def test_loopback_server_origin_and_body_checks():
     try:
         with urllib.request.urlopen(url+'/api/status') as response:
             assert json.load(response)['mode'] == 'local'
+        with urllib.request.urlopen(url+'/') as response:
+            assert b'FlySOC Research Platform' in response.read()
+        with urllib.request.urlopen(url+'/lab.html') as response:
+            assert b'FlySOC Brain Lab' in response.read()
+        with urllib.request.urlopen(url+'/analyze.html') as response:
+            assert b'Alert Analyzer' in response.read()
+        with urllib.request.urlopen(url+'/analyzer.js') as response:
+            assert response.headers.get_content_type() == 'text/javascript'
         with urllib.request.urlopen(url+'/api/connectome/neuron/0') as response:
             assert json.load(response)['root_id'] == '720575940629663000'
         with pytest.raises(urllib.error.HTTPError) as error:
@@ -101,6 +130,11 @@ def test_loopback_server_origin_and_body_checks():
         request = urllib.request.Request(url+'/api/fly/trace', data=data, headers={'Content-Type':'application/json'})
         with urllib.request.urlopen(request) as response:
             assert json.load(response)['index'] == 2
+        manual_data = json.dumps({'alert': {'alert_id': 'IMPORT-1', 'alert_name': 'Imported'}}).encode()
+        request = urllib.request.Request(url+'/api/fly/trace', data=manual_data,
+                                         headers={'Content-Type':'application/json'})
+        with urllib.request.urlopen(request) as response:
+            assert json.load(response)['alert']['alert_id'] == 'IMPORT-1'
         foreign = urllib.request.Request(url+'/api/fly/trace', data=data, headers={'Content-Type':'application/json','Origin':'https://foreign.example'})
         with pytest.raises(urllib.error.HTTPError) as error:
             urllib.request.urlopen(foreign)

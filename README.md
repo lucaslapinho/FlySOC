@@ -24,7 +24,8 @@ demonstrate general superiority over conventional methods.
 The real connectome is **not yet used to classify SOC alerts**. Psychological
 questions about attention, experience, fatigue and analyst decision-making are
 future research interests; no human study or psychological validation has been
-conducted. See the [research roadmap](docs/status.md).
+conducted. See the [research roadmap](docs/status.md) and the
+[project changelog](CHANGELOG.md).
 
 ```mermaid
 flowchart LR
@@ -71,7 +72,7 @@ On Linux/macOS, use `python3.12 -m venv .venv`, then `.venv/bin/python` in place
 `.\.venv\Scripts\python.exe`. The core is portable Python; Windows launchers are
 optional convenience scripts.
 
-## Open the 3D Brain Lab
+## Open the local research platform
 
 After generating and training the SOC experiment above:
 
@@ -84,12 +85,43 @@ After generating and training the SOC experiment above:
 & .\.venv\Scripts\python.exe scripts/brain_lab.py --open-browser
 ```
 
-Open **http://127.0.0.1:8765**. Use **Apply pulse**, **Next step**, **Start/Pause**,
-rotate, zoom and inspect points. In **Live FlySOC**, select test alerts or supply
-a flat JSON alert. The English UI shows actual Python results per request; replay
-uses saved test alerts and is not a connection to a production SOC.
+Open **http://127.0.0.1:8765** for the main FlySOC Home. It links the two focused
+workspaces and shows the currently loaded model and connectome status:
 
-`Start-BrainLab.ps1` and `Start-BrainLab.cmd` can launch the prepared lab later.
+- **Brain Lab:** http://127.0.0.1:8765/lab.html
+- **Alert Analyzer:** http://127.0.0.1:8765/analyze.html
+
+In **Brain Lab**, use **Apply pulse**, **Next step**, **Start/Pause**, rotate,
+zoom and inspect points. In **Live FlySOC**, select test alerts or supply
+a flat JSON alert. The six-stage Alert Decision Journey replays the computed
+Alert → PN → KC → Top-K → Memory → Hypothesis trace, with manual stage controls,
+nearest historical alerts, novelty and downstream classifier probabilities.
+The English UI shows actual Python results per request; replay uses saved test
+alerts and is not a connection to a production SOC. The hypothesis supports
+analyst review and is not an automatic incident verdict.
+
+The responsive research console separates experiment controls, the 3D scene and
+the computed readout. Teal marks FlyWire diffusion, violet marks the engineered
+FlySOC representation, and amber cards preserve scientific interpretation limits.
+
+### Analyze your own alert
+
+Open **http://127.0.0.1:8765/analyze.html** or choose **Alert Analyzer** in the
+top navigation. The dedicated screen accepts:
+
+- a manual form with common SOC fields;
+- one flat JSON object pasted into the editor;
+- JSON arrays and objects containing an `alerts` array;
+- CSV or TSV exports with a header row.
+
+Imported files are read by the local browser. Up to 1,000 records and 5 MB are
+accepted, and only the selected flat alert is sent to the loopback Python
+service. The screen replays Alert → PN → KC → Top-K → Memory → Hypothesis and
+shows the 64-cell fingerprint, novelty, five historical matches and classifier
+probabilities. Try [the small import example](docs/examples/alert_import_sample.csv).
+Telemetry values remain inert strings and are never executed.
+
+`Start-BrainLab.ps1` and `Start-BrainLab.cmd` launch the connected platform later.
 Keep the server terminal open; Ctrl+C stops it. See the [Brain Lab guide](docs/brain_lab.md).
 
 Downloaded data, JavaScript vendor assets, virtual environments, trained models
@@ -116,7 +148,7 @@ initial implementation. Perfect novelty separation can reflect an easy synthetic
 shift. Six classifiers and the poorly performing Isolation Forest baseline are
 reported in the [full measured results](docs/initial_results.md).
 
-The original pipeline had 37 passing tests; Brain Lab extended the suite to **43**.
+The original pipeline had 37 passing tests; the current suite contains **47**.
 Real-data validation checked source hashes, graph integrity, 30 diffusion steps
 and 50 live traces against the original fingerprint computation. These checks
 establish implementation consistency, not biological or operational validity.
@@ -145,6 +177,37 @@ Outputs are stored under unique run/evaluation directories in `results/` and
 `models/`, with configuration, hashes, predictions and plots. Small `latest.json`
 pointers identify current runs. Label changes through associative memory are
 separate from classifier retraining and novelty recalibration.
+
+## Experimental research modules
+
+FlyHash remains the default representation. Setting `representation.backend` in
+a separate config enables `connectome` or `rewired_connectome`; both require a
+locally built, hash-verified PN-to-KC artifact. The deterministic feature-to-PN
+bridge is an engineering adapter, while the measured matrix constrains only the
+PN-to-KC stage. No MaleCNS data are committed to this repository.
+
+```powershell
+& .\.venv\Scripts\python.exe -m pip install -r requirements-research.txt
+& .\.venv\Scripts\python.exe scripts\fetch_malecns_sources.py
+# Add --download only when you deliberately start the later data-preparation phase.
+```
+
+`config/connectome_experiment.yaml` prepares matched FlyHash, measured-topology
+and degree-preserving rewired comparisons across multiple seeds. LOF, One-Class
+SVM, feature ablations and representation-specific deduplication calibration are
+available for later experiments; none of those experiments is claimed here.
+
+`flysoc.mbon_learning.MBONInspiredReadout` provides a separate KC-to-MBON
+online readout with a configurable reward policy, bounded parameters and an
+audit record for each feedback event. Evaluate it prequentially: predict an
+alert, record that prediction, then apply its analyst label so the update can
+affect only later alerts. It does not modify `AssociativeMemory` or enable
+automatic alert suppression.
+
+Connectome-topology experiments use separately downloaded datasets and must
+preserve the source version, hashes, attribution and license. These experimental
+modules do not establish biological fidelity, complete brain simulation or
+superiority over conventional methods.
 
 ## Safety and scientific limits
 

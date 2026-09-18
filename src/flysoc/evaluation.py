@@ -152,9 +152,21 @@ def evaluate_experiment(identifier: str | None = None) -> Path:
     LOG.info("Held-out novelty comparison generated")
 
     deduplication = {}
+    backend = getattr(pipeline.encoder, "backend_name", "flyhash")
+    threshold_keys = {
+        "pn": "pn_cosine",
+        "flyhash": "fly_jaccard",
+        "connectome": "connectome_jaccard",
+        "rewired_connectome": "rewired_connectome_jaccard",
+    }
+    configured_thresholds = cfg["deduplication"].get("thresholds", {})
     for name, metric in (("fly", "jaccard"), ("pn", "cosine")):
+        threshold_key = threshold_keys["pn" if name == "pn" else backend]
+        threshold = configured_thresholds.get(threshold_key)
+        if threshold is None:
+            threshold = cfg["deduplication"]["similarity_threshold"]
         start = perf_counter()
-        assignments = deduplicate(matrices["test"][name], cfg["deduplication"]["similarity_threshold"], metric)
+        assignments = deduplicate(matrices["test"][name], threshold, metric)
         if families_available:
             deduplication[name] = cluster_metrics(assignments, test.family.to_numpy())
         else:
@@ -162,7 +174,8 @@ def evaluate_experiment(identifier: str | None = None) -> Path:
                                    "reduction_percentage": 100 * (1 - len(np.unique(assignments)) / len(test)),
                                    "purity_status": "family ground truth unavailable"}
         deduplication[name].update({"seconds": perf_counter() - start, "metric": metric,
-                                    "threshold": cfg["deduplication"]["similarity_threshold"]})
+                                    "threshold": threshold, "threshold_key": threshold_key,
+                                    "threshold_source": "representation-specific" if configured_thresholds.get(threshold_key) is not None else "legacy fallback"})
         pd.DataFrame({"alert_id": test.alert_id, "cluster_id": assignments,
                       "family": test.family if families_available else pd.NA}).to_csv(output / "predictions" / f"clusters_{name}.csv", index=False)
     write_json(output / "metrics/deduplication.json", deduplication)

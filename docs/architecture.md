@@ -1,9 +1,11 @@
 # FlySOC architecture
 
-## Brain Lab v0.2 observability
+## Brain Lab v0.3 observability
 
 ```mermaid
 flowchart LR
+    Q[Home / project hub] --> J
+    Q --> P
     A[Local test alert or manual JSON] --> B[Existing FlySOC pipeline]
     B --> C[PN values and KC activations]
     C --> D[Top-K and memory matches]
@@ -14,7 +16,12 @@ flowchart LR
     F --> I[Annotated coordinates and sampled edges]
     I --> J[Local Three.js viewer]
     E --> J
-    J --> K[Pause / step / replay / inspect]
+    J --> K[Alert Decision Journey]
+    K --> L[Alert → PN → KC → Top-K → Memory → Hypothesis]
+    L --> M[Pause / previous / next / replay / inspect]
+    N[Manual form or local JSON / CSV / TSV] --> O[Browser validation and selected flat alert]
+    O --> E
+    E --> P[Alert Analyzer canvas and result cards]
 ```
 
 The two modes are independent experiments. FlySOC still uses its original random
@@ -76,9 +83,14 @@ normalization, inhibition or learning mechanism in the biological circuit.
 | `synthetic.py` | Deterministic patterns and test-only held-out family |
 | `preprocessing.py` | Sparse feature extraction with training-only TF-IDF fitting |
 | `flyhash.py` | Seeded sparse random projection and positive top-k selection |
+| `connectome_projection.py` | Optional verified PN-to-KC artifact, engineered feature bridge and Top-K encoder |
+| `projection_controls.py` | Degree-preserving rewired PN-to-KC experimental control |
 | `similarity.py` | Jaccard, cosine, Hamming and batched exact nearest neighbors |
 | `memory.py` | Fingerprint/metadata storage, append and label-feedback audit |
+| `mbon_learning.py` | Experimental KC-to-MBON online readout with explicit reward policy and update audit |
 | `novelty.py` | Training leave-one-out nearest-neighbor threshold |
+| `novelty_baselines.py` | Validation-calibrated LOF and One-Class SVM baselines |
+| `threshold_calibration.py` | Per-representation validation selection under a false-merge budget |
 | `pipeline.py` | Representation, memory and novelty composition |
 | `baselines.py` | Explicit downstream classifiers and Isolation Forest |
 | `clustering.py` | Chronological exemplar-based deduplication |
@@ -89,6 +101,26 @@ normalization, inhibition or learning mechanism in the biological circuit.
 | `cli.py` | Generate/train/evaluate/inspect commands |
 
 ## Representation
+
+```mermaid
+flowchart LR
+    A[Engineered PN features] --> B{Configured backend}
+    B --> C[Seeded random FlyHash]
+    B --> D[Verified MaleCNS PN-to-KC artifact]
+    B --> E[Degree-preserving rewired control]
+    C --> F[KC activations and Top-K]
+    D --> F
+    E --> F
+    F --> G[Sparse fingerprint]
+    G --> H[Associative memory and novelty]
+    G --> I[Experimental MBON readout]
+```
+
+FlyHash remains the default. The connectome backends are activated explicitly
+and fail closed when their local matrix or provenance manifest is missing or
+does not match its recorded shape, edge count and SHA-256. The rewired control
+preserves every unweighted PN and KC degree while changing topology; weighted
+row/column strength is not claimed to be preserved.
 
 Default PN width is exactly **4,096**: 2,048 categorical hash bins, 2,040 text
 slots, and eight numeric slots. A vocabulary smaller than 2,040 is zero-padded.
@@ -143,14 +175,20 @@ separately to PN features and Fly fingerprints. A nearest historical verdict or
 a classifier prediction is a hypothesis for analyst review, not a confirmed
 incident determination.
 
-## Future architecture
+## Experimental architecture
 
-Future work may add KC-to-output-unit weights inspired by Mushroom Body Output
-Neurons (MBONs), with analyst feedback acting as a reinforcement signal. The
-sign and magnitude of updates require an explicit operational loss function;
-“true positive = positive reward” is not automatically the right policy.
-Dopaminergic reinforcement, neural dynamics and biologically realistic learning
-are **not implemented** in v0.1.
+`MBONInspiredReadout` adds an isolated KC-to-output-unit experiment. Its
+multiclass update combines KC activity, output error and an explicit signed
+reward configured for every label. Each event records pre/post probabilities,
+the applied reward, active-KC count and any clipping. Empty fingerprints and
+zero rewards are recorded without a parameter update. The module is not wired
+into the main pipeline or `AssociativeMemory`; experiments must activate it
+directly and use chronological predict-then-update evaluation.
+
+The update rule is an engineering model. It does not reproduce dopaminergic
+reinforcement, neural dynamics or biologically realistic learning. Optional
+connectome-derived projections likewise require separately downloaded,
+versioned datasets and matched controls before any claim about topology.
 
 Vendor adapters should map exports to this generic schema in a separate module.
 There is no live Cortex XSIAM/XDR integration, tenant assumption or API access.

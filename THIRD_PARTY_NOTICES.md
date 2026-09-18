@@ -32,3 +32,17 @@ The selected vendor files and hashes are in `src/flysoc/web/vendor/manifest.json
 Python dependencies are installed separately in the virtual environment and
 are not bundled as binaries in the FlySOC ZIP. Their versions are recorded in
 `requirements-lock.txt`; each package retains its own license.
+
+## Optional research datasets and references
+
+Experimental MBON code is original FlySOC code and does not bundle a biological
+dataset or third-party implementation. Optional connectome-topology experiments
+obtain their datasets separately; generated matrices remain subject to the
+source dataset's attribution and license terms.
+
+MaleCNS v1.0 is available from the official Janelia Male CNS project under CC BY
+according to the project materials. Record the exact release, source URLs and
+hashes, retain attribution for derived matrices and cite the corresponding
+publication. Other repositories and papers used as research references retain
+their own software, data and publication licenses; links are references rather
+than relicensing or vendoring.

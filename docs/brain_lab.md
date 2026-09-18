@@ -13,6 +13,9 @@ Git clone contains source code, not prepared datasets or model binaries.
 
 Run `python scripts/brain_lab.py --open-browser` with the project environment.
 The server listens on http://127.0.0.1:8765; `--port 8766` selects another port.
+The root address opens the shared Home, `/lab.html` opens Brain Lab and
+`/analyze.html` opens Alert Analyzer. All three screens use the same loopback
+Python process and provide navigation to each other.
 Keep its terminal open. Ctrl+C stops it. The optional Windows PowerShell launcher
 reuses an existing Brain Lab; the CMD launcher starts a new server directly.
 
@@ -31,6 +34,77 @@ reuses an existing Brain Lab; the CMD launcher starts a new server directly.
 During replay, the selector advances to the next alert; the result panel shows
 what has just been computed. Live means per-request Python computation, not
 live SOC ingestion. The pulse state is shared between browser tabs on one server.
+
+## Interface design and interpretation
+
+The console uses a three-part layout: experiment controls, the interactive 3D
+scene and the live readout. This keeps configuration separate from computed
+results. The statistic strip summarizes the active mode, while the processing
+trace names each computational stage without implying an anatomical pathway.
+
+Teal identifies the FlyWire diffusion experiment. Violet identifies Live
+FlySOC and its engineered PN/KC representation. These colors are interface
+semantics only; they do not encode neurotransmitter identity, excitation,
+inhibition or biological cell state. Amber scope cards mark interpretation
+limits that should remain visible when screenshots are shared.
+
+The layout collapses to a single column on small screens, preserves keyboard
+focus indicators and honors reduced-motion preferences. The 3D canvas still
+requires WebGL2. The textual controls, metrics and scientific-scope notes remain
+available when the viewport is narrow.
+
+## Alert Decision Journey
+
+Live FlySOC presents each completed alert computation as a six-stage replay:
+
+1. **Alert** — displays selected telemetry as inert data.
+2. **PN** — highlights nonzero engineered feature coordinates.
+3. **KC** — shows the strongest positive expansion activations.
+4. **Top-K** — isolates the sparse binary FlyFingerprint winners.
+5. **Memory** — reveals nearest historical alerts, similarity and novelty.
+6. **Hypothesis** — shows class probabilities from the separately trained
+   Logistic Regression classifier on the fingerprint.
+
+Previous, replay and next controls allow the researcher to inspect any stage.
+The browser does not recompute or fabricate intermediate values: Python first
+returns one complete trace, then the viewer reveals fields from that trace in
+sequence. “Computed trace replay” describes the timing accurately; it is not a
+claim about biological firing time or streaming SOC latency.
+
+The final hypothesis is analyst support. It is not an automatic incident
+verdict, and FlyHash remains a representation rather than a classifier. The
+novelty label only measures distance from historical fingerprints; unfamiliar
+does not mean malicious. Historical verdicts shown beside matches are recorded
+context and are not ground truth for the current alert. The current interface
+does not feed analyst actions back into the saved classifier.
+
+## Alert Analyzer
+
+The separate `/analyze.html` screen is the intake path for user-supplied alerts.
+It offers a common-field form, pasted JSON and local JSON/CSV/TSV import. JSON
+may be one flat object, an array of objects, or an object containing an `alerts`
+array. Delimited files require a unique, nonempty header row and support quoted
+values. The included `docs/examples/alert_import_sample.csv` is a safe template.
+
+The browser applies these limits before analysis:
+
+- maximum file size: 5 MB;
+- maximum imported records: 1,000;
+- maximum fields per record: 100;
+- flat scalar values only; nested objects and arrays are rejected;
+- maximum selected-alert JSON size: approximately 60 KB.
+
+The complete file is not uploaded to the Python service. It is parsed locally,
+shown in a one-row preview and kept in browser memory. Only the selected alert
+is posted to the loopback `/api/fly/trace` endpoint. Imported alert IDs are
+preserved; a missing ID receives `MANUAL`.
+
+After computation, the canvas replays the same six stages as Live FlySOC using
+actual PN indices, KC activations, winning indices, contributing edges, memory
+matches and prediction probabilities. Its brain-like layout is schematic and
+does not use anatomical coordinates. The detailed result intentionally omits
+the full 8,192-value activation array while retaining the active indices,
+summary counts, novelty, matches, prediction and timing.
 
 ## Real data and provenance
 
@@ -90,7 +164,7 @@ input, total nonnegative activity mass must decay.
 ## Verification
 
 Run `python -m pytest -q` and, after preparing all data,
-`python scripts/validate_brain_lab.py`. The unit/integration suite reached 43
+`python scripts/validate_brain_lab.py`. The unit/integration suite reached 47
 passing tests. Data validation checked all raw hashes, dimensions, finite
 coordinates, synapse sums and rendered-edge membership. Thirty propagation
 steps stayed finite with decreasing mass; resetting repeated the first step

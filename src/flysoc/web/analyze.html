@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111c">
+  <title>FlySOC · Alert Analyzer</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/analyzer.css">
+</head>
+<body data-mode="fly" class="analyzer-page">
+  <a class="skip-link" href="#analyzer-workspace">Skip to alert analyzer</a>
+  <header class="topbar">
+    <div class="brand" aria-label="FlySOC Alert Analyzer">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="brand-name"><strong>FlySOC</strong><small>ALERT ANALYZER</small></span>
+      <span class="divider"></span>
+      <span class="edition">Research console <b>v0.3</b></span>
+    </div>
+    <div class="topbar-actions">
+      <nav class="product-nav" aria-label="FlySOC sections"><a href="/">Home</a><a href="/lab.html">Brain Lab</a><a class="active" href="/analyze.html">Alert Analyzer</a></nav>
+      <div class="connection" aria-live="polite"><span class="status-orbit" aria-hidden="true"><i></i></span><span id="connection">Connecting to local engine</span><span class="local-tag">LOCALHOST</span></div>
+    </div>
+  </header>
+
+  <main class="analyzer-main">
+    <section class="analyzer-hero" aria-labelledby="analyzer-title">
+      <div>
+        <p class="eyebrow"><span>ALERT INTAKE</span><i></i><span>LOCAL ANALYSIS</span></p>
+        <h1 id="analyzer-title">Send an alert through the <em>FlySOC brain.</em></h1>
+        <p class="subheading">Enter one alert or import a local JSON, CSV or TSV file. Review the engineered PN/KC trace, sparse fingerprint, historical memory, novelty and downstream classifier hypothesis.</p>
+      </div>
+      <div class="safety-chip"><span aria-hidden="true">◇</span><div><b>Telemetry stays inert</b><small>Commands, URLs, paths and payload strings are analyzed as text and are never executed.</small></div></div>
+    </section>
+
+    <div class="analyzer-workspace" id="analyzer-workspace">
+      <section class="intake panel" aria-labelledby="intake-title">
+        <div class="panel-heading"><div><span class="panel-kicker">01 · INPUT</span><h2 id="intake-title">Choose an alert source</h2></div><span class="panel-number">LOCAL</span></div>
+        <div class="source-tabs" role="tablist" aria-label="Alert input method">
+          <button role="tab" aria-selected="true" data-source="manual">Manual form</button>
+          <button role="tab" aria-selected="false" data-source="json">Paste JSON</button>
+          <button role="tab" aria-selected="false" data-source="file">Import file</button>
+        </div>
+
+        <section id="source-manual" class="source-panel" aria-label="Manual alert form">
+          <div class="form-heading"><p>Provide the fields you have. Missing fields are handled by the existing preprocessor.</p><button id="load-example" class="text-button">Load example</button></div>
+          <div class="alert-form">
+            <label class="wide">Alert name<input data-field="alert_name" type="text" placeholder="Suspicious PowerShell activity"></label>
+            <label>Alert ID<input data-field="alert_id" type="text" placeholder="MANUAL-001"></label>
+            <label>Timestamp<input data-field="timestamp" type="datetime-local"></label>
+            <label>Severity<select data-field="severity"><option value="">Not provided</option><option>low</option><option>medium</option><option>high</option><option>critical</option></select></label>
+            <label>Category<input data-field="category" type="text" placeholder="execution"></label>
+            <label>MITRE tactic<input data-field="mitre_tactic" type="text" placeholder="Execution"></label>
+            <label>MITRE technique<input data-field="mitre_technique" type="text" placeholder="T1059.001"></label>
+            <label>Hostname<input data-field="hostname" type="text" placeholder="WS-0142"></label>
+            <label>Username<input data-field="username" type="text" placeholder="analyst.user"></label>
+            <label>Source IP<input data-field="source_ip" type="text" placeholder="10.20.1.15"></label>
+            <label>Destination IP<input data-field="destination_ip" type="text" placeholder="10.20.8.40"></label>
+            <label>Process name<input data-field="process_name" type="text" placeholder="powershell.exe"></label>
+            <label>Action<input data-field="action" type="text" placeholder="allowed"></label>
+            <label class="wide">Process command line<textarea data-field="process_command_line" rows="4" spellcheck="false" placeholder="powershell.exe -NoProfile -File inventory.ps1"></textarea></label>
+          </div>
+        </section>
+
+        <section id="source-json" class="source-panel" aria-label="JSON alert input" hidden>
+          <label for="json-alert">Flat JSON alert</label>
+          <textarea id="json-alert" class="json-input" spellcheck="false">{
+  "alert_id": "MANUAL-001",
+  "alert_name": "PowerShell activity",
+  "process_name": "powershell.exe",
+  "process_command_line": "inventory.ps1",
+  "category": "execution",
+  "severity": "medium"
+}</textarea>
+          <p class="helper">A single object is analyzed immediately. An array or an object containing an <code>alerts</code> array is loaded into the import queue.</p>
+        </section>
+
+        <section id="source-file" class="source-panel" aria-label="Alert file import" hidden>
+          <label id="drop-zone" class="drop-zone" for="alert-file">
+            <input id="alert-file" type="file" accept=".json,.csv,.tsv,.txt,application/json,text/csv,text/tab-separated-values">
+            <span class="drop-icon" aria-hidden="true">⇧</span><b>Drop an alert export here</b><small>or select a JSON, CSV or TSV file · maximum 5 MB</small>
+          </label>
+          <div id="import-summary" class="import-summary" hidden><div><span>IMPORTED DATASET</span><strong id="import-name">—</strong><small id="import-count">—</small></div><label for="import-row">Alert to analyze<select id="import-row"></select></label></div>
+          <div id="import-preview" class="import-preview" hidden></div>
+          <p class="helper">Up to 1,000 flat alert records are loaded locally. Select any row and run it through the same Python model as the Brain Lab.</p>
+        </section>
+
+        <div class="intake-actions"><button id="analyze-alert" class="primary analyze-button"><span aria-hidden="true">✦</span> Analyze alert</button><span id="input-status" role="status">Waiting for input</span></div>
+        <div class="local-info"><span class="status-orbit" aria-hidden="true"><i></i></span><div><b>Local processing boundary</b><small>The browser reads the selected file locally and sends only the selected flat alert to the loopback Python service.</small></div></div>
+      </section>
+
+      <section class="analysis panel" aria-labelledby="analysis-title">
+        <div class="analysis-head"><div><span class="panel-kicker">02 · COMPUTED TRACE</span><h2 id="analysis-title">Brain analysis</h2></div><span id="analysis-state" class="analysis-state">READY</span></div>
+        <div class="brain-view">
+          <canvas id="brain-canvas" width="1100" height="620" aria-label="Schematic visualization of the alert computation"></canvas>
+          <div class="brain-caption"><span>SCHEMATIC PN / KC SPACE</span><small>Computed values · display positions are not anatomical</small></div>
+          <div id="brain-stage" class="brain-stage"><span id="brain-stage-number">NO TRACE</span><strong id="brain-stage-title">Waiting for an alert</strong><small id="brain-stage-description">Choose an input method and analyze one alert.</small></div>
+        </div>
+        <div id="analysis-controls" class="analysis-controls" hidden><button id="analysis-prev" aria-label="Previous analysis stage">←</button><button id="analysis-replay">▶ Replay</button><span id="analysis-position">01 / 06</span><button id="analysis-next" aria-label="Next analysis stage">→</button></div>
+        <div id="analysis-stages" class="analysis-stages" aria-label="Analysis stages"></div>
+
+        <div id="analysis-output" class="analysis-output" hidden>
+          <div class="alert-summary"><div><span id="output-alert-id">—</span><h3 id="output-alert-name">—</h3><p id="output-alert-context">—</p></div><span id="output-pattern" class="badge">—</span></div>
+          <div class="analysis-metrics">
+            <article><span>PN FEATURES</span><strong id="output-pn">—</strong><small>nonzero engineered inputs</small></article>
+            <article><span>ACTIVE KCs</span><strong id="output-kc">—</strong><small>Top-K fingerprint</small></article>
+            <article><span>NOVELTY</span><strong id="output-novelty">—</strong><small id="output-threshold">threshold —</small></article>
+            <article><span>TOTAL TIME</span><strong id="output-time">—</strong><small>local Python trace</small></article>
+          </div>
+
+          <div class="result-grid">
+            <section id="analyzer-decision" class="decision-card result-card"><div class="decision-head"><div><span>DOWNSTREAM CLASSIFIER</span><h3>Decision hypothesis</h3></div><strong id="output-confidence">—</strong></div><div class="decision-label"><span>LIKELY ANALYST VERDICT</span><strong id="output-hypothesis">—</strong></div><div id="output-probabilities" class="probability-list"></div><p id="output-model" class="decision-model"></p><p class="decision-disclaimer">This is an analyst-support hypothesis, not an automatic incident verdict.</p></section>
+            <section id="analyzer-fingerprint" class="fingerprint-card result-card"><div class="section-title"><span>FLYFINGERPRINT</span><small id="output-fingerprint-summary">—</small></div><div id="output-fingerprint" class="fingerprint-grid"></div><p>Each illuminated cell represents an active KC index in the sparse binary representation.</p></section>
+          </div>
+
+          <section id="analyzer-memory" class="memory-card result-card"><div class="section-title"><span>ASSOCIATIVE MEMORY</span><small>TOP 5 HISTORICAL MATCHES</small></div><div id="output-matches" class="match-grid"></div></section>
+          <details class="trace-details"><summary>Inspect normalized alert and timing</summary><pre id="output-trace"></pre></details>
+          <div class="science-note"><span><i aria-hidden="true">!</i> INTERPRETATION</span><p>Novelty measures distance from historical fingerprints; unfamiliar does not mean malicious. PN and KC are engineering abstractions inspired by the Mushroom Body. The staged display replays one completed Python calculation.</p></div>
+        </div>
+      </section>
+    </div>
+    <footer class="page-footer"><span>FlySOC Alert Analyzer · local research interface</span><span><span id="analysis-count">0</span> manual analyses this session</span></footer>
+    <div id="error" role="alert" aria-live="assertive" hidden></div>
+  </main>
+  <script src="/analyzer.js" defer></script>
+</body>
+</html>

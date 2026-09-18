@@ -134,4 +134,5 @@ The next experiment should compare multiple seeds and held-out families, then
 select per-representation deduplication thresholds on validation under a fixed
 false-merge budget. Real-world conclusions require de-identified exports and
 analyst-reviewed similarity/incident labels. MBON-style learning and Cortex API
-integration remain future work.
+integration were not part of this measured run. An isolated MBON-inspired
+readout now exists for a later prequential experiment; no result is reported yet.

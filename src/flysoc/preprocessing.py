@@ -34,6 +34,11 @@ class AlertPreprocessor:
 
     def __init__(self, features: dict[str, Any]):
         self.features = dict(features)
+        ablation = features.get("ablation", {})
+        disabled = set(ablation.get("disabled_fields", [])) if ablation.get("enabled", False) else set()
+        self.disabled_fields = disabled
+        for key in ("text_fields", "categorical_fields", "identity_fields"):
+            self.features[key] = [name for name in features[key] if name not in disabled]
         self.n_features = features["input_features"]
         self.hasher = FeatureHasher(n_features=features["categorical_hash_dim"],
                                     input_type="dict", alternate_sign=False, dtype=np.float32)
@@ -62,18 +67,23 @@ class AlertPreprocessor:
 
     def _numeric(self, frame: pd.DataFrame) -> sparse.csr_matrix:
         values = np.zeros((len(frame), 8), dtype=np.float32)
+        # Saved v0.2 preprocessors predate configurable feature ablation.
+        disabled_fields = getattr(self, "disabled_fields", set())
         for i, name in enumerate(("source_port", "destination_port")):
+            if name in disabled_fields:
+                continue
             ports = pd.to_numeric(column(frame, name), errors="coerce")
             valid = ports.between(0, 65535).fillna(False).to_numpy(dtype=bool)
             array = ports.fillna(0).to_numpy(dtype=float)
             values[:, i] = np.where(valid, np.log1p(np.clip(array, 0, 65535)) / np.log(65536), 0)
             values[:, i + 2] = valid
-        times = pd.to_datetime(column(frame, "timestamp"), utc=True, errors="coerce")
-        valid_time = times.notna().to_numpy()
-        for offset, cycle, period in ((4, times.dt.hour, 24), (6, times.dt.dayofweek, 7)):
-            angle = cycle.fillna(0).to_numpy() * (2 * np.pi / period)
-            values[:, offset] = np.where(valid_time, (np.sin(angle) + 1) / 2, 0)
-            values[:, offset + 1] = np.where(valid_time, (np.cos(angle) + 1) / 2, 0)
+        if "timestamp" not in disabled_fields:
+            times = pd.to_datetime(column(frame, "timestamp"), utc=True, errors="coerce")
+            valid_time = times.notna().to_numpy()
+            for offset, cycle, period in ((4, times.dt.hour, 24), (6, times.dt.dayofweek, 7)):
+                angle = cycle.fillna(0).to_numpy() * (2 * np.pi / period)
+                values[:, offset] = np.where(valid_time, (np.sin(angle) + 1) / 2, 0)
+                values[:, offset + 1] = np.where(valid_time, (np.cos(angle) + 1) / 2, 0)
         return sparse.csr_matrix(values * self.features["numeric_weight"])
 
     def transform(self, frame: pd.DataFrame) -> sparse.csr_matrix:

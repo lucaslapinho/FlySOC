@@ -52,14 +52,16 @@ class BrainLab:
     def status(self) -> dict[str, Any]:
         return {"run": self.run_path.name, "pn_dim": self.pipeline.encoder.input_dim,
                 "kc_dim": self.pipeline.encoder.kc_dim, "top_k": self.pipeline.encoder.top_k,
-                "fan_in": self.pipeline.encoder.fan_in, "training_alerts": len(self.splits["train"]),
+                "fan_in": getattr(self.pipeline.encoder, "fan_in", None),
+                "representation_backend": getattr(self.pipeline.encoder, "backend_name", "flyhash"),
+                "training_alerts": len(self.splits["train"]),
                 "test_alerts": len(self.test), "novelty_threshold": self.pipeline.novelty.threshold_,
                 "connectome": self.connectome_summary,
                 "stimulus_classes": [c for c in ["ALPN", "Kenyon_Cell", "MBON", "DAN", "visual", "olfactory"]
                                      if self.connectome_summary and c in self.connectome_summary["class_counts"]]}
 
     def fly_layout(self) -> dict[str, Any]:
-        projection = self.pipeline.encoder.projection_.tocoo()
+        projection = self.pipeline.encoder.connectivity_matrix().tocoo()
         sample = np.random.default_rng(42).choice(len(projection.data), min(2500, len(projection.data)), replace=False)
         return {"pn_positions": np.round(self.pn_positions, 3).ravel().tolist(),
                 "kc_positions": np.round(self.kc_positions, 3).ravel().tolist(),
@@ -80,12 +82,15 @@ class BrainLab:
         else:
             if not isinstance(alert, dict) or not alert or any(isinstance(v, (dict, list)) for v in alert.values()):
                 raise ValueError("Provide a flat JSON alert object")
-            frame = pd.DataFrame([{**alert, "alert_id": "MANUAL"}])
+            normalized_alert = {**alert}
+            if not str(normalized_alert.get("alert_id", "")).strip():
+                normalized_alert["alert_id"] = "MANUAL"
+            frame = pd.DataFrame([normalized_alert])
         started = perf_counter()
         pn = self.pipeline.preprocessor.transform(frame)
         pn_ms = (perf_counter() - started) * 1000
         projected = perf_counter()
-        activations = (pn @ self.pipeline.encoder.projection_).toarray()[0]
+        activations = self.pipeline.encoder.transform_activations(pn).toarray()[0]
         fp = self.pipeline.encoder.transform(pn)
         encoding_ms = (perf_counter() - projected) * 1000
         memory_started = perf_counter()
@@ -93,14 +98,17 @@ class BrainLab:
         novelty = self.pipeline.novelty.score(fp).iloc[0].to_dict()
         winners = fp.indices
         positive_pn = pn.indices
-        connections = self.pipeline.encoder.projection_[:, winners].tocoo()
+        connections = self.pipeline.encoder.connectivity_matrix()[:, winners].tocoo()
         contributing = np.isin(connections.row, positive_pn)
         edges = np.column_stack([connections.row[contributing], winners[connections.col[contributing]]])
         prediction = None
         model = self.payload["classifiers"].get("fly_logistic_regression")
         if model is not None:
             probabilities = model.predict_proba(fp)[0]
-            prediction = {"model": "Fly Logistic Regression", "verdict": str(model.classes_[probabilities.argmax()]),
+            hypothesis = str(model.classes_[probabilities.argmax()])
+            prediction = {"model": "Logistic Regression on FlyFingerprint",
+                          "role": "downstream_classifier", "hypothesis": hypothesis,
+                          "verdict": hypothesis, "confidence": float(probabilities.max()),
                           "probabilities": dict(zip(model.classes_, probabilities.tolist()))}
         return json_value({"source": "live Python calculation", "alert_index": index if alert is None else None,
                            "alert": frame.iloc[0].to_dict(), "pn_indices": positive_pn.tolist(), "pn_values": pn.data.tolist(),

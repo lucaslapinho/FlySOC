@@ -10,15 +10,15 @@ $flysocUrl = "http://127.0.0.1:$Port"
 $flysocExisting = $null
 try { $flysocExisting = Invoke-RestMethod "$flysocUrl/api/status" -TimeoutSec 2 } catch { }
 if ($flysocExisting -and $flysocExisting.kc_dim -and $flysocExisting.connectome) {
-    Write-Host "Brain Lab is already running: $flysocUrl"
+    Write-Host "FlySOC Research Platform is already running: $flysocUrl"
     if (-not $NoBrowser) { Start-Process $flysocUrl }
     return
 }
 Push-Location -LiteralPath $flysocRoot
 try {
-    Write-Host "Starting Brain Lab at $flysocUrl. Keep this terminal open; Ctrl+C stops the server."
+    Write-Host "Starting FlySOC Research Platform at $flysocUrl. Keep this terminal open; Ctrl+C stops the server."
     $flysocArguments = @('scripts/brain_lab.py', '--port', "$Port")
     if (-not $NoBrowser) { $flysocArguments += '--open-browser' }
     & $flysocPython @flysocArguments
-    if ($LASTEXITCODE -ne 0) { throw 'Brain Lab stopped with an error. See the message above.' }
+    if ($LASTEXITCODE -ne 0) { throw 'FlySOC Research Platform stopped with an error. See the message above.' }
 } finally { Pop-Location }

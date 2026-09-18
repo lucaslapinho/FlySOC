@@ -28,6 +28,14 @@ File ingestion trims whitespace and uppercases verdicts. Other values are
 unlabeled for classification. `UNKNOWN` is accepted by the feedback API.
 Classification is skipped if training has fewer than two observed classes.
 
+The browser Alert Analyzer also accepts JSON for one-off encoding. Use a flat
+object, an array of flat objects, or `{ "alerts": [...] }`. CSV and TSV imports
+need a header row; each data row becomes one selectable alert. Browser import is
+limited to 5 MB and 1,000 rows, while the selected alert sent to the loopback
+service must fit its 64 KiB request limit. Nested JSON values are rejected.
+These browser limits do not replace the stricter timestamp and identifier rules
+used when an entire dataset is trained or evaluated chronologically.
+
 Synthetic data also contains `family` and `is_unseen`. These are **evaluation
 ground truth only**, never features. Actual unseen status is calculated from
 families absent in training, rather than trusting the supplied `is_unseen` flag.

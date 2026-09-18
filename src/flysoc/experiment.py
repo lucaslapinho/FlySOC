@@ -28,11 +28,14 @@ def train_experiment(dataset: Path, config_path: Path | None = None) -> str:
     cfg = load_config(config_path)
     frame = read_alerts(dataset)
     splits = chronological_split(frame, cfg["evaluation"]["train_ratio"], cfg["evaluation"]["validation_ratio"])
-    heldout = cfg["dataset"]["heldout_family"]
+    heldout_families = cfg.get("experiments", {}).get(
+        "heldout_families", [cfg["dataset"]["heldout_family"]]
+    )
     if "family" in frame:
         for name in ("train", "validation"):
-            if (splits[name].family == heldout).any():
-                raise ValueError(f"Held-out family occurs in {name}; novelty experiment would leak")
+            leaked = sorted(set(splits[name].family).intersection(heldout_families))
+            if leaked:
+                raise ValueError(f"Held-out families occur in {name}: {leaked}; novelty experiment would leak")
     identifier = run_id()
     output = safe_run_path(identifier)
     output.mkdir(parents=True, exist_ok=False)
@@ -93,9 +96,12 @@ def train_experiment(dataset: Path, config_path: Path | None = None) -> str:
                            for name, part in splits.items()},
                 "split_file_sha256": {name: sha256(output / "predictions" / f"split_{name}.csv") for name in splits}}
     write_json(output / "manifest.json", manifest)
+    encoder_matrices = [getattr(pipeline.encoder, name) for name in ("projection_", "bridge_", "pn_to_kc")
+                        if hasattr(pipeline.encoder, name)]
     timing.update({"pn_shape": pn.shape, "fingerprint_shape": fp.shape,
                    "pn_storage_bytes": sparse_bytes(pn), "fingerprint_storage_bytes": sparse_bytes(fp),
-                   "projection_storage_bytes": sparse_bytes(pipeline.encoder.projection_),
+                   "projection_storage_bytes": sum(sparse_bytes(matrix) for matrix in encoder_matrices),
+                   "representation_backend": getattr(pipeline.encoder, "backend_name", "flyhash"),
                    "model_file_bytes": model_path.stat().st_size,
                    "active_kcs_min": int(fp.getnnz(axis=1).min()), "active_kcs_max": int(fp.getnnz(axis=1).max()),
                    "fly_novelty_threshold": pipeline.novelty.threshold_, "pn_novelty_threshold": pn_novelty.threshold_})

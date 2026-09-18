@@ -1,4 +1,4 @@
-"""Loopback-only local Brain Lab server. No telemetry is sent off this machine."""
+"""Loopback-only FlySOC research platform. No telemetry is sent off this machine."""
 
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -99,7 +99,7 @@ def make_handler(lab: BrainLab):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="FlySOC Brain Lab local 3D viewer")
+    parser = argparse.ArgumentParser(description="FlySOC local research platform")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--run")
     parser.add_argument("--open-browser", action="store_true", help="Open the local interactive viewer")
@@ -108,7 +108,7 @@ def main():
         parser.error("Port must be between 1024 and 65535")
     lab = BrainLab(args.run)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(lab))
-    print(f"FlySOC Brain Lab ready: http://127.0.0.1:{args.port}", flush=True)
+    print(f"FlySOC Research Platform ready: http://127.0.0.1:{args.port}", flush=True)
     if args.open_browser:
         webbrowser.open(f"http://127.0.0.1:{args.port}")
     try:

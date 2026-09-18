@@ -1,4 +1,6 @@
 seed: 42
+representation:
+  backend: flyhash
 dataset:
   size: 5000
   start: '2026-01-01T00:00:00Z'
@@ -15,13 +17,38 @@ features:
   text_fields: [alert_name, process_command_line]
   categorical_fields: [severity, category, process_name, action]
   identity_fields: [hostname, username, source_ip, destination_ip]
+  ablation:
+    enabled: false
+    disabled_fields: []
 flyhash:
   kc_dim: 8192
   fan_in: 8
   top_k: 64
   batch_size: 128
+connectome:
+  enabled: false
+  dataset: malecns
+  dataset_version: null
+  projection_path: null
+  bridge_fan_out: 2
+  top_k: 64
+  batch_size: 128
+controls:
+  rewired:
+    enabled: false
+    preserve_degree: true
+    swaps_per_edge: 5.0
+mbon:
+  enabled: false
+  learning_rate: 0.01
+  weight_decay: 0.0
+  weight_clip: 3.0
 novelty:
   percentile: 99
+  baselines:
+    enabled: false
+    lof_neighbors: 35
+    ocsvm_nu: 0.01
 evaluation:
   train_ratio: 0.70
   validation_ratio: 0.15
@@ -34,3 +61,12 @@ classification:
   logistic_max_iter: 1000
 deduplication:
   similarity_threshold: 0.75
+  max_false_merge_rate: 0.01
+  thresholds:
+    fly_jaccard: null
+    pn_cosine: null
+    connectome_jaccard: null
+    rewired_connectome_jaccard: null
+experiments:
+  seeds: [42]
+  heldout_families: [credential_dumping]

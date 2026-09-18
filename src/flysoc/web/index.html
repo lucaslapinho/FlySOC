@@ -1,56 +1,74 @@
 <!doctype html>
 <html lang="en-US">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FlySOC · Brain Lab</title><link rel="stylesheet" href="/style.css">
-  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111c">
+  <title>FlySOC · Research Platform</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/home.css">
 </head>
-<body>
+<body class="home-page">
+  <a class="skip-link" href="#home-content">Skip to FlySOC overview</a>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">◈</span><strong>FlySOC</strong><span class="divider"></span><span>Brain Lab</span><small>v0.2</small></div>
-    <div class="connection"><span class="dot"></span><span id="connection">Connecting to local engine</span><span class="local-tag">127.0.0.1</span></div>
-  </header>
-  <main>
-    <div class="page-heading"><div><p class="eyebrow">NEUROCOMPUTING LABORATORY</p><h1>Observe the network. Explore the signal.</h1><p class="subheading">Fly connectome and alert processing in one local research lab.</p></div><a href="https://home.flywire.ai/" target="_blank" rel="noreferrer">About FlyWire ↗</a></div>
-    <div class="modebar"><div class="tabs" role="tablist" aria-label="Visualization mode"><button role="tab" aria-selected="true" id="mode-real">Real connectome <span>FAFB v783</span></button><button role="tab" aria-selected="false" id="mode-fly">Live FlySOC <span>PN → KC</span></button></div><span id="mode-note">Real anatomical positions · exploratory propagation</span></div>
-    <section class="stats" aria-label="Network statistics">
-      <div><span id="stat-label-1">NEURONS</span><strong id="stat-1">—</strong><small id="stat-detail-1">FlyWire FAFB</small></div>
-      <div><span id="stat-label-2">CONNECTED NEURON PAIRS</span><strong id="stat-2">—</strong><small id="stat-detail-2">Complete graph from the dataset</small></div>
-      <div><span id="stat-label-3">ACTIVE SIGNAL</span><strong id="stat-3">0</strong><small id="stat-detail-3">Awaiting stimulation</small></div>
-      <div><span id="stat-label-4">COMPUTE / STEP</span><strong id="stat-4">—</strong><small id="stat-detail-4">Computed in Python</small></div>
-    </section>
-    <div class="workspace">
-      <aside class="controls panel">
-        <div class="panel-title">EXPERIMENT CONTROLS <span>01</span></div>
-        <section id="real-controls"><label for="stimulus">Input population</label><select id="stimulus"><option value="ALPN">ALPN · olfactory projection</option></select><p class="helper">An initial pulse travels through real connections, weighted by synapse count.</p><button id="pulse" class="primary full">↗ Apply pulse</button></section>
-        <section id="fly-controls" hidden><label for="alert-filter">Alert set</label><select id="alert-filter"><option value="all">All test alerts</option><option value="unseen">Unseen family</option><option value="FALSE_POSITIVE">False positives (label)</option><option value="TRUE_POSITIVE">True positives</option><option value="BENIGN">Benign</option></select><label for="alert-select">Alert to process</label><select id="alert-select"></select><p class="helper">Each query computes PN features, KC activations, Top-K and memory matches using the trained model.</p></section>
-        <div class="transport"><button id="play" class="primary">▶ Start</button><button id="step" title="Run one step">Next step</button></div>
-        <div class="control-row"><label for="speed">Playback speed</label><output id="speed-label">2×</output></div><input type="range" id="speed" min="1" max="8" value="2" aria-label="Playback speed"><p class="helper">Playback speed does not represent biological time.</p>
-        <div class="control-divider"></div><div class="panel-title">VISUALIZATION <span>02</span></div>
-        <label class="check"><input type="checkbox" id="show-links" checked> Show connections</label><label class="check"><input type="checkbox" id="auto-rotate"> Auto-rotate</label><label class="check"><input type="checkbox" id="only-active"> Show active signal only</label>
-        <div class="control-row"><label for="point-size">Point size</label><output id="point-size-label">1.5</output></div><input type="range" id="point-size" min="0.5" max="3" step="0.1" value="1.5" aria-label="Point size">
-        <button class="quiet full" id="reset-view">↺ Reset camera</button>
-        <details id="manual-section" hidden><summary>Test a JSON alert</summary><label for="manual-alert">Alert fields</label><textarea id="manual-alert" spellcheck="false">{"alert_name":"PowerShell activity","process_name":"powershell.exe","process_command_line":"inventory.ps1","category":"execution","severity":"medium"}</textarea><button id="manual-process" class="quiet full">Process JSON</button></details>
-        <div class="local-info"><span class="dot"></span><div>Local execution<small>Data and computation stay on this machine.</small></div></div>
-      </aside>
-      <section class="viewer panel" aria-label="Interactive 3D viewer">
-        <div class="viewer-head"><span><i class="dot"></i><b id="viewer-title">Drosophila connectome</b></span><span><span id="frame-label">PAUSED · STEP 0</span><button id="expand-view" aria-label="Expand viewer" title="Expand viewer">⛶</button></span></div>
-        <div id="stage"><div id="loading"><span class="loader"></span><strong>Building the 3D visualization</strong><small>Loading local points and connections…</small></div><div class="view-overlay"><span id="scene-tag">ANATOMY · ANNOTATED POINTS</span><small id="geometry-caption">Lines show connections, not axon trajectories.</small></div><div id="scene-labels" hidden><span class="kc-label">KENYON CELLS</span><span class="pn-label">PROJECTION NEURONS</span></div><div class="axis-key"><span class="axis-x">X</span><span class="axis-y">Y</span><span class="axis-z">Z</span></div><div class="mouse-hint">Drag to rotate · scroll to zoom · click a point</div></div>
-        <div class="viewer-footer"><div id="legend"></div><span id="fps">— FPS</span></div>
-        <div class="trace-strip" id="trace-strip"><span class="trace-node selected">PULSE</span><i></i><span class="trace-node">REAL GRAPH</span><i></i><span class="trace-node">DIFFUSION</span><i></i><span class="trace-node">READOUT</span></div>
-      </section>
-      <aside class="inspector panel"><div class="panel-title">PROCESSING RESULTS <span>03</span></div>
-        <div class="inspector-heading"><span id="result-badge" class="badge">Ready to explore</span><h2 id="result-title">A map of real connections.</h2><p id="result-description">Apply a pulse to follow the computed propagation through the graph.</p></div>
-        <div id="selected-node" class="selected-node" hidden></div>
-        <div class="mini-metrics"><div><span id="metric-a-label">STEP</span><strong id="metric-a">0</strong></div><div><span id="metric-b-label">SIGNAL MASS</span><strong id="metric-b">0</strong></div></div>
-        <div class="chart-title"><span id="chart-title">Activity across steps</span><small id="chart-scale">0 → peak</small></div><canvas id="activity-chart" width="520" height="160" aria-label="Activity chart"></canvas>
-        <div class="panel-title list-heading" id="list-heading">NEURONS WITH THE STRONGEST SIGNAL</div><div id="results-list" class="results-list"><p class="empty">Results appear after the first computation.</p></div>
-        <div class="science-note"><span>SCIENTIFIC SCOPE</span><p id="science-note">Connections and positions come from FlyWire. The pulse is mathematical diffusion without inhibitory signals, voltages or spikes. It is not a validated physiological simulation.</p></div>
-      </aside>
+    <div class="brand" aria-label="FlySOC Research Platform">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="brand-name"><strong>FlySOC</strong><small>RESEARCH PLATFORM</small></span>
+      <span class="divider"></span>
+      <span class="edition">Research console <b>v0.3</b></span>
     </div>
-    <footer class="page-footer"><span id="data-caption">FlyWire FAFB v783 · source and checksums preserved locally</span><span>FlySOC Research Lab · <span id="processed-count">0</span> computations this session</span></footer>
-    <div id="error" role="alert" hidden></div>
+    <div class="topbar-actions">
+      <nav class="product-nav" aria-label="FlySOC sections"><a class="active" href="/">Home</a><a href="/lab.html">Brain Lab</a><a href="/analyze.html">Alert Analyzer</a></nav>
+      <div class="connection" aria-live="polite"><span class="status-orbit" aria-hidden="true"><i></i></span><span id="connection">Connecting to local engine</span><span class="local-tag">LOCALHOST</span></div>
+    </div>
+  </header>
+
+  <main class="home-main" id="home-content">
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-hero-copy">
+        <p class="eyebrow"><span>DROSOPHILA-INSPIRED COMPUTING</span><i></i><span>DEFENSIVE RESEARCH</span></p>
+        <h1 id="home-title">A local laboratory for <em>sparse SOC intelligence.</em></h1>
+        <p class="home-lead">FlySOC connects alert encoding, associative memory, novelty analysis and connectome exploration in one auditable research platform.</p>
+        <div class="home-actions"><a class="home-primary" href="/analyze.html"><span aria-hidden="true">✦</span> Analyze an alert</a><a class="home-secondary" href="/lab.html">Open Brain Lab <span aria-hidden="true">→</span></a></div>
+        <div class="hero-badges" aria-label="Platform properties"><span>Runs locally</span><span>CPU-first</span><span>Telemetry stays inert</span><span>Actual Python traces</span></div>
+      </div>
+      <div class="home-orbit" aria-hidden="true"><span class="orbit orbit-a"></span><span class="orbit orbit-b"></span><span class="orbit orbit-c"></span><i class="core"></i><i class="satellite satellite-a"></i><i class="satellite satellite-b"></i><i class="satellite satellite-c"></i><div><strong>PN</strong><span>→</span><strong>KC</strong><span>→</span><strong>MEMORY</strong></div></div>
+    </section>
+
+    <section class="platform-status" aria-label="Local platform status">
+      <div class="status-heading"><span>LOCAL ENGINE</span><strong id="engine-state">CONNECTING</strong></div>
+      <article><span>PN FEATURES</span><strong id="home-pn">—</strong><small>engineered sparse input</small></article>
+      <article><span>KENYON CELLS</span><strong id="home-kc">—</strong><small id="home-topk">Top-K —</small></article>
+      <article><span>MEMORY</span><strong id="home-memory">—</strong><small>historical alerts</small></article>
+      <article><span>CONNECTOME</span><strong id="home-neurons">—</strong><small>FlyWire neurons available</small></article>
+    </section>
+
+    <section class="screen-section" aria-labelledby="screens-title">
+      <div class="section-heading"><div><span class="panel-kicker">CONNECTED WORKSPACES</span><h2 id="screens-title">Choose how you want to explore FlySOC</h2></div><p>Each workspace has a focused purpose and uses the same local model and loopback service.</p></div>
+      <div class="screen-grid">
+        <a class="screen-card analyzer-card" href="/analyze.html">
+          <div class="screen-number">01</div><div class="screen-icon" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="screen-kicker">ALERT INTAKE & ANALYSIS</span><h3>Alert Analyzer</h3><p>Enter an alert manually or import JSON, CSV or TSV. Follow its complete PN/KC journey and review memory, novelty and classifier probabilities.</p>
+          <ul><li>Manual and file input</li><li>Six-stage visual trace</li><li>Analyst-support hypothesis</li></ul><strong class="screen-link">Analyze an alert <span>→</span></strong>
+        </a>
+        <a class="screen-card lab-card" href="/lab.html">
+          <div class="screen-number">02</div><div class="screen-icon network-icon" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="screen-kicker">INTERACTIVE RESEARCH LAB</span><h3>Brain Lab</h3><p>Explore real FlyWire connectivity separately from the engineered FlySOC representation, with interactive 3D scenes and computed traces.</p>
+          <ul><li>Real connectome diffusion</li><li>Live FlySOC replay</li><li>Interactive PN/KC inspection</li></ul><strong class="screen-link">Enter the laboratory <span>→</span></strong>
+        </a>
+      </div>
+    </section>
+
+    <section class="workflow-section" aria-labelledby="workflow-title">
+      <div class="section-heading compact"><div><span class="panel-kicker">SHARED COMPUTATIONAL CORE</span><h2 id="workflow-title">One pipeline across every screen</h2></div></div>
+      <div class="workflow" aria-label="FlySOC processing workflow"><article><span>01</span><b>SOC alert</b><small>flat inert telemetry</small></article><i>→</i><article><span>02</span><b>PN features</b><small>hash + TF-IDF + numeric</small></article><i>→</i><article><span>03</span><b>KC expansion</b><small>sparse random projection</small></article><i>→</i><article><span>04</span><b>Top-K</b><small>binary FlyFingerprint</small></article><i>→</i><article><span>05</span><b>Memory</b><small>similarity + novelty</small></article><i>→</i><article><span>06</span><b>Hypothesis</b><small>downstream classifier</small></article></div>
+    </section>
+
+    <section class="home-scope"><div><span class="scope-mark" aria-hidden="true">!</span><div><span>SCIENTIFIC SCOPE</span><h2>A research instrument, not an autonomous SOC.</h2></div></div><p>FlySOC is a Mushroom Body-inspired computational abstraction. It does not simulate a complete fly brain, connect to a production SOC or make automatic incident decisions. Novelty and classifier output are evidence for analyst review.</p></section>
+
+    <footer class="page-footer"><span id="run-caption">Loading local experiment…</span><span>FlySOC Research Platform <i></i> Localhost only</span></footer>
+    <div id="error" role="alert" aria-live="assertive" hidden></div>
   </main>
-  <script type="module" src="/app.js"></script>
+  <script src="/home.js" defer></script>
 </body>
 </html>

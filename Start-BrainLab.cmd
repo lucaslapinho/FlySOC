@@ -5,6 +5,6 @@ if not exist ".venv\Scripts\python.exe" (
     pause
     exit /b 1
 )
-echo FlySOC Brain Lab - keep this window open. Ctrl+C stops the server.
+echo FlySOC Research Platform - keep this window open. Ctrl+C stops the server.
 ".venv\Scripts\python.exe" scripts\brain_lab.py --open-browser
 pause

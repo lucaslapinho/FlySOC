@@ -1,0 +1,58 @@
+connectome_experiment:
+  seeds: [42, 43, 44, 45, 46]
+
+  split:
+    # The list form supports a leave-one-family-out run for every named family.
+    heldout_families: [credential_dumping]
+    calibration_partition: validation
+
+  feature_ablations:
+    - name: all_features
+      exclude_groups: []
+    - name: without_identity
+      exclude_groups: [identity]
+    - name: without_text
+      exclude_groups: [text]
+    - name: without_categorical
+      exclude_groups: [categorical]
+    - name: without_numeric
+      exclude_groups: [numeric]
+
+  projection:
+    bridge_fan_out: 2
+    top_k: 64
+    weight_mode: column_normalized
+    controls:
+      - name: measured_topology
+        kind: measured
+      - name: degree_preserving_rewire
+        kind: degree_preserving_rewire
+        swaps_per_edge: 5
+        # Use the enclosing experiment seed for each independent run.
+        seed_source: experiment_seed
+
+  novelty_baselines:
+    calibration_partition: validation
+    percentile: 99
+    lof_neighbors: 35
+    one_class_svm:
+      nu: 0.01
+      gamma: scale
+
+  threshold_calibration:
+    calibration_partition: validation
+    max_false_merge_rate: 0.01
+    candidate_thresholds:
+      start: 0.50
+      stop: 0.99
+      count: 50
+    metrics_by_representation:
+      input_features: [cosine]
+      flyhash_fingerprint: [jaccard, cosine]
+      connectome_measured: [jaccard, cosine]
+      connectome_rewired: [jaccard, cosine]
+
+  notes:
+    - Use identical bridge parameters for measured and rewired topology.
+    - Select every deduplication threshold on validation data only.
+    - Do not interpret the feature-to-PN bridge as measured biology.

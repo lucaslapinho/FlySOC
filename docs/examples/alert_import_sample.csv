@@ -1,0 +1,3 @@
+timestamp,alert_id,alert_name,severity,category,mitre_tactic,mitre_technique,hostname,username,source_ip,destination_ip,process_name,process_command_line,action
+2026-09-18T12:30:00Z,IMPORT-001,Suspicious PowerShell activity,high,execution,Execution,T1059.001,WS-0142,analyst.user,10.20.1.15,10.20.8.40,powershell.exe,"powershell.exe -NoProfile -File inventory.ps1",allowed
+2026-09-18T12:35:00Z,IMPORT-002,Remote administration session,medium,remote_access,Command and Control,T1219,WS-0218,support.user,10.20.2.18,10.20.9.12,remote-admin.exe,"remote-admin.exe --support-session",allowed

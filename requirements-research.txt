@@ -1,0 +1,4 @@
+# Additive dependency for building MaleCNS Feather exports.
+# The FlySOC runtime continues to use requirements.txt.
+-r requirements.txt
+pyarrow>=15

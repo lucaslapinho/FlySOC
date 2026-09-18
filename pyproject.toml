@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flysoc"
-version = "0.2.0"
+version = "0.3.0"
 description = "Mushroom Body-inspired sparse representations for local SOC research"
 readme = "README.md"
 license = "MIT"
@@ -15,6 +15,9 @@ dynamic = ["dependencies"]
 Repository = "https://github.com/lucaslapinho/FlySOC"
 Documentation = "https://github.com/lucaslapinho/FlySOC#readme"
 Issues = "https://github.com/lucaslapinho/FlySOC/issues"
+
+[project.optional-dependencies]
+connectome = ["pyarrow>=15"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
